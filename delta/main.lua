@@ -5,6 +5,7 @@ function love.load()
     pi=math.pi
 
     mapView=false
+    zoom=50
 
     player={
         x=0,
@@ -56,8 +57,8 @@ function love.load()
     map={ 
            -1,-1,1,
            1,-1,1,
-           1,1,1,
            -1,1,1,
+           1,1,1,
            1,1,0,
     }
 
@@ -69,7 +70,37 @@ function love.update()
 end
 
 function love.draw()
-    draw3d()
+    if mapView==false then
+        draw3d()
+    else
+        draw2D()
+    end
+end
+
+function love.keypressed(key, scancode, isrepeat)
+    if key=='escape' then
+       love.event.quit()
+    end
+    if key=='tab' then
+        if mapView==false then
+            mapView=true
+        else
+            mapView=false
+        end
+    end
+end
+
+function love.wheelmoved(x,y)
+    if mapView==true then
+        if y>0 then
+            zoom=zoom+7
+        elseif y<0 then
+            zoom=zoom-7
+            if zoom<10 then
+                zoom=10
+            end
+        end
+    end
 end
 
 function sin(n)
@@ -275,5 +306,45 @@ function drawWall(x1,x2,b1,b2,x3,x4,b3,b4)
         for y=y1,y2,1 do
             love.graphics.points(x,y)
         end
+    end
+end
+
+function draw2D()
+    if love.mouse.isDown(4) then
+        zoom=zoom+5
+    elseif love.mouse.isDown(5) then
+        zoom=zoom-5
+    end
+
+    love.graphics.setColor(1,1,1)
+    love.graphics.line(width/2,height/2,width/2,(height/2)-5)
+    love.graphics.line((width/2)-1.5,height/2,(width/2)+1.5,(height/2))
+
+    for v=1,#wall.x1,1 do
+        love.graphics.setColor(wall.color.r[v],wall.color.g[v],wall.color.b[v])
+        local x=wall.x1[v]-player.x
+        local z=wall.z2[v]-player.z
+        local fx1=(x*cos(player.angle)-z*sin(player.angle))*-1
+        local fz1=(x*sin(player.angle)+z*cos(player.angle))*-1
+
+        x=wall.x2[v]-player.x
+        z=wall.z2[v]-player.z
+        local fx2=(x*cos(player.angle)-z*sin(player.angle))*-1
+        local fz2=(x*sin(player.angle)+z*cos(player.angle))*-1
+
+        x=wall.x3[v]-player.x
+        z=wall.z3[v]-player.z
+        local fx3=(x*cos(player.angle)-z*sin(player.angle))*-1
+        local fz3=(x*sin(player.angle)+z*cos(player.angle))*-1
+
+        x=wall.x4[v]-player.x
+        z=wall.z4[v]-player.z
+        local fx4=(x*cos(player.angle)-z*sin(player.angle))*-1
+        local fz4=(x*sin(player.angle)+z*cos(player.angle))*-1
+
+        love.graphics.line((width/2)+(fx1*zoom),(height/2)+(fz1*zoom),(width/2)+(fx2*zoom),(height/2)+(fz2*zoom))
+        love.graphics.line((width/2)+(fx3*zoom),(height/2)+(fz3*zoom),(width/2)+(fx4*zoom),(height/2)+(fz4*zoom))
+        love.graphics.line((width/2)+(fx1*zoom),(height/2)+(fz1*zoom),(width/2)+(fx3*zoom),(height/2)+(fz3*zoom))
+        love.graphics.line((width/2)+(fx2*zoom),(height/2)+(fz2*zoom),(width/2)+(fx4*zoom),(height/2)+(fz4*zoom))
     end
 end
