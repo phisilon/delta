@@ -15,31 +15,50 @@ function love.load()
     g3d.camera.target={0,0,0}
     g3d.camera.up={0,-1,0}
 
-    objects={}
-    objectsPos={}
-    objectsType={}
-    cubeCollisions={}
-    sphereCollisions={}
+    camera={
+        pointing=false,
+        pointTo={0,0,0},
+    }
 
-    player={
+    time=0
+
+    objects={}
+
+    objectsName={}
+    objectX={}
+    objectY={}
+    objectZ={}
+
+   player={
         x=0,
         y=0,
         z=0,
         angle=0,
         latatude=0,
     }
-    sphere(0,0,4,1,1,1,'assets/textures/earth.jpg','low')
-    sphere(0,0,0,500,500,500,'assets/textures/space-sky.jpg','low')
+    sphere(0,0,0,500,500,500,0,0,0,'assets/textures/space-sky.jpg','low','sky')
+    sphere(4,0,0,1,1,1,pi/-10,pi/-10,pi/-10,'assets/textures/earth.jpg','low','earth')
+    sphere(4,0,5,0.5,0.5,0.5,0,0,0,'assets/textures/moon.jpg','low','moon')
 end
 
 function love.update(dt)
+    time=time+dt
     movePlayer()
+    objects[3]:setTranslation(math.cos(time)*5+4,sin(time),math.sin(time)*5)
+    objectX[3]=math.cos(time)*5+4
+    objectY[3]=sin(time)
+    objectZ[3]=math.sin(time)*5
+    objects[3]:setRotation(0,time-pi/2,0)
+    if love.keyboard.isDown('tab') then
+        pointAtObject(name2num('moon'),200)
+    else
+        camera.pointing=false
+    end
 end
 
 function love.draw()
     for o=1,#objects,1 do
         objects[o]:draw()
-        --if cubeCollisions[(o*3)-2]
     end
 end
 
@@ -73,56 +92,24 @@ function sqrt(n)
     return math.sqrt(n)
 end
 
-function cube(x,y,z,sx,sy,sz,texture)
+function cube(x,y,z,sx,sy,sz,texture,name)
     objects[#objects+1]=g3d.newModel('assets/models/cube.obj',texture,{x,y,z},nil,{sx,sy,sz})
-    objectsType[#objectsType+1]='cube'
-    objectsPos[#objectsType+1]=x
-    objectsPos[#objectsType+1]=y
-    objectsPos[#objectsType+1]=z
-
-    cubeCollisions[#cubeCollisions+1]=x-((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y-((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z-((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x-((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y+((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z-((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x+((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y+((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z-((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x+((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y-((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z-((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x+((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y-((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z+((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x-((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y+((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z+((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x-((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y+((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z+((objectsPos[#objectsPos])/2)
-
-    cubeCollisions[#cubeCollisions+1]=x+((objectsPos[#objectsPos-2])/2)
-    cubeCollisions[#cubeCollisions+1]=y+((objectsPos[#objectsPos-1])/2)
-    cubeCollisions[#cubeCollisions+1]=z+((objectsPos[#objectsPos])/2)
+    objectX[#objectX+1]=x
+    objectY[#objectY+1]=y
+    objectZ[#objectZ+1]=z
+    objectsName[#objectsName+1]=name
 end
 
-function sphere(x,y,z,sx,sy,sz,texture,poly)
+function sphere(x,y,z,sx,sy,sz,rx,ry,rz,texture,poly,name)
     if poly=='low' then
-        objects[#objects+1]=g3d.newModel('assets/models/sphere.obj',texture,{x,y,z},nil,{sx,sy,sz})
+        objects[#objects+1]=g3d.newModel('assets/models/sphere.obj',texture,{x,y,z},{rx,ry,rz},{sx,sy,sz})
     elseif poly=='high' then
-        objects[#objects+1]=g3d.newModel('assets/models/highpoly-sphere.obj',texture,{x,y,z},nil,{sx,sy,sz})
+        objects[#objects+1]=g3d.newModel('assets/models/highpoly-sphere.obj',texture,{x,y,z},{rx,ry,rz},{sx,sy,sz})
     end
-    objectsType[#objectsType+1]='sphere'
-    objectsPos[#objectsType+1]=x
-    objectsPos[#objectsType+1]=y
-    objectsPos[#objectsType+1]=z
+    objectX[#objectX+1]=x
+    objectY[#objectY+1]=y
+    objectZ[#objectZ+1]=z
+    objectsName[#objectsName+1]=name
 end
 
 function movePlayer()
@@ -137,10 +124,30 @@ function movePlayer()
         player.z=player.z+cos(player.angle)*0.1
     elseif love.keyboard.isDown('s') then
         player.x=player.x-sin(player.angle)*0.1
-       player.z=player.z-cos(player.angle)*0.1
+    player.z=player.z-cos(player.angle)*0.1
     end
-    g3d.camera.lookAt(player.x,player.y,player.z,player.x+sin(player.angle),0,player.z+cos(player.angle))
+    if camera.pointing==false then
+        g3d.camera.lookAt(player.x,player.y,player.z,player.x+sin(player.angle),0,player.z+cos(player.angle))
+    else
+        g3d.camera.lookAt(player.x,player.y,player.z,camera.pointTo[1],camera.pointTo[2],camera.pointTo[3])
+    end
 end
 
 function pointAtObject(object,time)
+    camera.pointing=true
+    camera.pointTo[1]=objectX[object]
+    camera.pointTo[2]=objectY[object]
+    camera.pointTo[3]=objectZ[object]
+end
+
+function name2num(name)
+    for o=1,#objectsName,1 do
+        if objectsName[o]==name then
+            return o
+        end
+    end
+end
+
+function num2name(num)
+    return objectsName[num]
 end
